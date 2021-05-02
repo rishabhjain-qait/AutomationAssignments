@@ -1,0 +1,319 @@
+{\rtf1\ansi\ansicpg1252\cocoartf2511
+\cocoatextscaling0\cocoaplatform0{\fonttbl\f0\fswiss\fcharset0 Helvetica-Bold;\f1\fswiss\fcharset0 Helvetica;\f2\fswiss\fcharset0 Helvetica-BoldOblique;
+\f3\fswiss\fcharset0 Helvetica-Oblique;}
+{\colortbl;\red255\green255\blue255;\red0\green0\blue109;\red82\green0\blue103;\red15\green112\blue3;
+\red109\green109\blue109;\red0\green0\blue254;}
+{\*\expandedcolortbl;;\csgenericrgb\c0\c0\c42745;\csgenericrgb\c32157\c0\c40392;\csgenericrgb\c5882\c43922\c1176;
+\csgenericrgb\c42745\c42745\c42745;\csgenericrgb\c0\c0\c99608;}
+\paperw11900\paperh16840\margl1440\margr1440\vieww35340\viewh22100\viewkind0
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\pardirnatural\partightenfactor0
+
+\f0\b\fs24 \cf2 package 
+\f1\b0 \cf0 AutomationAssigments;\
+\
+
+\f0\b \cf2 import 
+\f1\b0 \cf0 org.openqa.selenium.By;\
+
+\f0\b \cf2 import 
+\f1\b0 \cf0 org.openqa.selenium.JavascriptExecutor;\
+
+\f0\b \cf2 import 
+\f1\b0 \cf0 org.openqa.selenium.WebDriver;\
+
+\f0\b \cf2 import 
+\f1\b0 \cf0 org.openqa.selenium.WebElement;\
+
+\f0\b \cf2 import 
+\f1\b0 \cf0 org.openqa.selenium.chrome.ChromeDriver;\
+
+\f0\b \cf2 import 
+\f1\b0 \cf0 org.openqa.selenium.support.ui.ExpectedConditions;\
+
+\f0\b \cf2 import 
+\f1\b0 \cf0 org.openqa.selenium.support.ui.WebDriverWait;\
+\
+
+\f0\b \cf2 import 
+\f1\b0 \cf0 java.util.ArrayList;\
+
+\f0\b \cf2 import 
+\f1\b0 \cf0 java.util.Collections;\
+
+\f0\b \cf2 import 
+\f1\b0 \cf0 java.util.List;\
+
+\f0\b \cf2 import 
+\f1\b0 \cf0 java.util.concurrent.TimeUnit;\
+
+\f0\b \cf2 import 
+\f1\b0 \cf0 java.util.stream.Collectors;\
+\
+
+\f0\b \cf2 class 
+\f1\b0 \cf0 TitleNotFoundException 
+\f0\b \cf2 extends 
+\f1\b0 \cf0 Exception \{\
+    TitleNotFoundException(String message) \{\
+        
+\f0\b \cf2 super
+\f1\b0 \cf0 (message);\
+    \}\
+\}\
+\
+
+\f0\b \cf2 public class 
+\f1\b0 \cf0 CarouselAssignment \{\
+\
+    
+\f0\b \cf2 private static final 
+\f1\b0 \cf0 String 
+\f2\i\b \cf3 scrollableElement 
+\f1\i0\b0 \cf0 = 
+\f0\b \cf4 "[data-commit = 'production']"
+\f1\b0 \cf0 ;\
+    
+\f0\b \cf2 private static final 
+\f1\b0 \cf0 String 
+\f2\i\b \cf3 carouselHeaders 
+\f1\i0\b0 \cf0 = 
+\f0\b \cf4 "div[class*='GkeGT'] h3"
+\f1\b0 \cf0 ;\
+    
+\f0\b \cf2 private static final 
+\f1\b0 \cf0 String 
+\f2\i\b \cf3 nextButtonLocator 
+\f1\i0\b0 \cf0 = 
+\f0\b \cf4 "//h3/ancestor::div[contains(@class,'GkeGT')]//div[contains(@class,'swiper-button-next')]"
+\f1\b0 \cf0 ;\
+    
+\f0\b \cf2 private static final 
+\f1\b0 \cf0 String 
+\f2\i\b \cf3 wrapperElements 
+\f1\i0\b0 \cf0 = 
+\f0\b \cf4 "//h3/ancestor::div[contains(@class,'GkeGT')]//div[contains(@class,'swiper-wrapper')]"
+\f1\b0 \cf0 ;\
+\
+    
+\f3\i \cf5 // Element List Inside Wrapper Element\
+    
+\f0\i0\b \cf2 private static final 
+\f1\b0 \cf0 String 
+\f2\i\b \cf3 gridElements 
+\f1\i0\b0 \cf0 = 
+\f0\b \cf4 "[class*='grid']"
+\f1\b0 \cf0 ;\
+\
+\
+    
+\f0\b \cf2 private static void 
+\f1\b0 \cf0 scrollUntillScrollable(WebDriver driver) 
+\f0\b \cf2 throws 
+\f1\b0 \cf0 InterruptedException \{\
+        JavascriptExecutor js = (JavascriptExecutor) driver;\
+        
+\f0\b \cf2 long 
+\f1\b0 \cf0 scrollHeight = (
+\f0\b \cf2 long
+\f1\b0 \cf0 ) js.executeScript(
+\f0\b \cf4 "return document.querySelector(\cf2 \\"\cf4 " 
+\f1\b0 \cf0 + 
+\f2\i\b \cf3 scrollableElement 
+\f1\i0\b0 \cf0 + 
+\f0\b \cf4 "\cf2 \\"\cf4 ).scrollHeight"
+\f1\b0 \cf0 );\
+        
+\f0\b \cf2 long 
+\f1\b0 \cf0 toScroll = \cf6 1000\cf0 ;\
+\
+        
+\f0\b \cf2 while 
+\f1\b0 \cf0 (toScroll < scrollHeight) \{\
+            js.executeScript(
+\f0\b \cf4 "document.querySelector(\cf2 \\"\cf4 " 
+\f1\b0 \cf0 + 
+\f2\i\b \cf3 scrollableElement 
+\f1\i0\b0 \cf0 + 
+\f0\b \cf4 "\cf2 \\"\cf4 ).scrollTo(0," 
+\f1\b0 \cf0 + toScroll + 
+\f0\b \cf4 ")"
+\f1\b0 \cf0 );\
+            toScroll += \cf6 1000\cf0 ;\
+            Thread.
+\f3\i sleep
+\f1\i0 (\cf6 3000\cf0 );\
+            scrollHeight = (
+\f0\b \cf2 long
+\f1\b0 \cf0 ) js.executeScript(
+\f0\b \cf4 "return document.querySelector(\cf2 \\"\cf4 " 
+\f1\b0 \cf0 + 
+\f2\i\b \cf3 scrollableElement 
+\f1\i0\b0 \cf0 + 
+\f0\b \cf4 "\cf2 \\"\cf4 ).scrollHeight"
+\f1\b0 \cf0 );\
+        \}\
+    \}\
+\
+    
+\f0\b \cf2 private static 
+\f1\b0 \cf0 List<String> getListForThisCarouselMenu(WebDriver driver, String carouselTitle, List<String> allHeadersTexts, List<WebElement> allCarouselMenuNextButtons, List<WebElement> allCarouselMenuWrappers) 
+\f0\b \cf2 throws 
+\f1\b0 \cf0 InterruptedException, TitleNotFoundException \{\
+        
+\f0\b \cf2 int 
+\f1\b0 \cf0 index = \cf6 0\cf0 ;\
+        
+\f0\b \cf2 boolean 
+\f1\b0 \cf0 found = 
+\f0\b \cf2 false
+\f1\b0 \cf0 ;\
+        JavascriptExecutor js = (JavascriptExecutor) driver;\
+        
+\f0\b \cf2 for 
+\f1\b0 \cf0 (
+\f0\b \cf2 int 
+\f1\b0 \cf0 i = \cf6 0\cf0 ; i < allHeadersTexts.size(); i++) \{\
+            
+\f0\b \cf2 if 
+\f1\b0 \cf0 (allHeadersTexts.get(i).equalsIgnoreCase(carouselTitle)) \{\
+                found = 
+\f0\b \cf2 true
+\f1\b0 \cf0 ;\
+                index = i;\
+                
+\f0\b \cf2 break
+\f1\b0 \cf0 ;\
+            \}\
+        \}\
+\
+        
+\f0\b \cf2 if 
+\f1\b0 \cf0 (!found) \{\
+            
+\f0\b \cf2 throw new 
+\f1\b0 \cf0 TitleNotFoundException(
+\f0\b \cf4 "Title Entered " 
+\f1\b0 \cf0 + carouselTitle + 
+\f0\b \cf4 " not Found on Webpage, please check once"
+\f1\b0 \cf0 );\
+        \}\
+\
+        WebElement carouserNextElement = allCarouselMenuNextButtons.get(index);\
+        WebElement carouserWrapperElement = allCarouselMenuWrappers.get(index);\
+\
+        
+\f0\b \cf2 while 
+\f1\b0 \cf0 (!carouserNextElement.getAttribute(
+\f0\b \cf4 "class"
+\f1\b0 \cf0 ).contains(
+\f0\b \cf4 "disabled"
+\f1\b0 \cf0 )) \{\
+            carouserNextElement.click();\
+            Thread.
+\f3\i sleep
+\f1\i0 (\cf6 2000\cf0 );\
+        \}\
+\
+        List<WebElement> allTitles = carouserWrapperElement.findElements(By.
+\f3\i cssSelector
+\f1\i0 (
+\f2\i\b \cf3 gridElements
+\f1\i0\b0 \cf0 ));\
+        List<String> titlesStored = 
+\f0\b \cf2 new 
+\f1\b0 \cf0 ArrayList<>();\
+\
+        
+\f0\b \cf2 for 
+\f1\b0 \cf0 (WebElement title : allTitles)\
+            titlesStored.add(title.getAttribute(
+\f0\b \cf4 "title"
+\f1\b0 \cf0 ).trim());\
+\
+        Collections.
+\f3\i sort
+\f1\i0 (titlesStored);\
+\
+        
+\f0\b \cf2 return 
+\f1\b0 \cf0 titlesStored;\
+    \}\
+\
+    
+\f0\b \cf2 public static void 
+\f1\b0 \cf0 main(String[] args) 
+\f0\b \cf2 throws 
+\f1\b0 \cf0 InterruptedException, TitleNotFoundException \{\
+        WebDriver driver;\
+        System.
+\f3\i setProperty
+\f1\i0 (
+\f0\b \cf4 "webdriver.chrome.driver"
+\f1\b0 \cf0 , 
+\f0\b \cf4 "/Users/rishabhjain01/Desktop/Selenium4/src/main/java/AutomationAssigments/chromedriver"
+\f1\b0 \cf0 );\
+        driver = 
+\f0\b \cf2 new 
+\f1\b0 \cf0 ChromeDriver();\
+        driver.get(
+\f0\b \cf4 "https://www.noon.com/uae-en/"
+\f1\b0 \cf0 );\
+        driver.manage().window().maximize();\
+        driver.manage().timeouts().implicitlyWait(\cf6 10\cf0 , TimeUnit.
+\f2\i\b \cf3 SECONDS
+\f1\i0\b0 \cf0 );\
+        WebDriverWait wait = 
+\f0\b \cf2 new 
+\f1\b0 \cf0 WebDriverWait(driver, \cf6 30\cf0 );\
+\
+        
+\f3\i scrollUntillScrollable
+\f1\i0 (driver);\
+\
+        List<WebElement> allCarouselHeaders = wait.until(ExpectedConditions.
+\f3\i visibilityOfAllElementsLocatedBy
+\f1\i0 (By.
+\f3\i cssSelector
+\f1\i0 (
+\f2\i\b \cf3 carouselHeaders
+\f1\i0\b0 \cf0 )));\
+        List<String> allHeadersTexts = allCarouselHeaders.stream().map(WebElement::getText).collect(Collectors.
+\f3\i toList
+\f1\i0 ());\
+\
+        
+\f3\i \cf5 /*System.out.println("Total number of Carousels available on Webpage " + allCarouselHeaders.size() + " and these are the following");\
+        for (String text : allHeadersTexts)\
+            System.out.println(text);*/\
+\
+        
+\f1\i0 \cf0 List<WebElement> allCarouselMenuNextButtons = wait.until(ExpectedConditions.
+\f3\i visibilityOfAllElementsLocatedBy
+\f1\i0 (By.
+\f3\i xpath
+\f1\i0 (
+\f2\i\b \cf3 nextButtonLocator
+\f1\i0\b0 \cf0 )));\
+        List<WebElement> allCarouselMenuWrappers = wait.until(ExpectedConditions.
+\f3\i visibilityOfAllElementsLocatedBy
+\f1\i0 (By.
+\f3\i xpath
+\f1\i0 (
+\f2\i\b \cf3 wrapperElements
+\f1\i0\b0 \cf0 )));\
+\
+        List<String> titles = 
+\f3\i getListForThisCarouselMenu
+\f1\i0 (driver, 
+\f0\b \cf4 "Top deals on electronics"
+\f1\b0 \cf0 , allHeadersTexts, allCarouselMenuNextButtons, allCarouselMenuWrappers);\
+\
+        
+\f0\b \cf2 for 
+\f1\b0 \cf0 (String title : titles)\
+            System.
+\f2\i\b \cf3 out
+\f1\i0\b0 \cf0 .println(title);\
+    \}\
+\}\
+}
