@@ -1,0 +1,107 @@
+package AutomationAssigments;
+
+import org.openqa.selenium.By;
+import org.openqa.selenium.JavascriptExecutor;
+import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.WebElement;
+import org.openqa.selenium.chrome.ChromeDriver;
+import org.openqa.selenium.support.ui.ExpectedConditions;
+import org.openqa.selenium.support.ui.WebDriverWait;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
+
+class TitleNotFoundException extends Exception {
+    TitleNotFoundException(String message) {
+        super(message);
+    }
+}
+
+public class CarouselAssignment {
+
+    private static final String scrollableElement = "[data-commit = 'production']";
+    private static final String carouselHeaders = "div[class*='GkeGT'] h3";
+    private static final String nextButtonLocator = "//h3/ancestor::div[contains(@class,'GkeGT')]//div[contains(@class,'swiper-button-next')]";
+    private static final String wrapperElements = "//h3/ancestor::div[contains(@class,'GkeGT')]//div[contains(@class,'swiper-wrapper')]";
+
+    // Element List Inside Wrapper Element
+    private static final String gridElements = "[class*='grid']";
+
+
+    private static void scrollUntillScrollable(WebDriver driver) throws InterruptedException {
+        JavascriptExecutor js = (JavascriptExecutor) driver;
+        long scrollHeight = (long) js.executeScript("return document.querySelector(\"" + scrollableElement + "\").scrollHeight");
+        long toScroll = 1000;
+
+        while (toScroll < scrollHeight) {
+            js.executeScript("document.querySelector(\"" + scrollableElement + "\").scrollTo(0," + toScroll + ")");
+            toScroll += 1000;
+            Thread.sleep(3000);
+            scrollHeight = (long) js.executeScript("return document.querySelector(\"" + scrollableElement + "\").scrollHeight");
+        }
+    }
+
+    private static List<String> getListForThisCarouselMenu(WebDriver driver, String carouselTitle, List<String> allHeadersTexts, List<WebElement> allCarouselMenuNextButtons, List<WebElement> allCarouselMenuWrappers) throws InterruptedException, TitleNotFoundException {
+        int index = 0;
+        boolean found = false;
+        JavascriptExecutor js = (JavascriptExecutor) driver;
+        for (int i = 0; i < allHeadersTexts.size(); i++) {
+            if (allHeadersTexts.get(i).equalsIgnoreCase(carouselTitle)) {
+                found = true;
+                index = i;
+                break;
+            }
+        }
+
+        if (!found) {
+            throw new TitleNotFoundException("Title Entered " + carouselTitle + " not Found on Webpage, please check once");
+        }
+
+        WebElement carouserNextElement = allCarouselMenuNextButtons.get(index);
+        WebElement carouserWrapperElement = allCarouselMenuWrappers.get(index);
+
+        while (!carouserNextElement.getAttribute("class").contains("disabled")) {
+            carouserNextElement.click();
+            Thread.sleep(2000);
+        }
+
+        List<WebElement> allTitles = carouserWrapperElement.findElements(By.cssSelector(gridElements));
+        List<String> titlesStored = new ArrayList<>();
+
+        for (WebElement title : allTitles)
+            titlesStored.add(title.getAttribute("title").trim());
+
+        Collections.sort(titlesStored);
+
+        return titlesStored;
+    }
+
+    public static void main(String[] args) throws InterruptedException, TitleNotFoundException {
+        WebDriver driver;
+        System.setProperty("webdriver.chrome.driver", "/Users/rishabhjain01/Desktop/Selenium4/src/main/java/AutomationAssigments/chromedriver");
+        driver = new ChromeDriver();
+        driver.get("https://www.noon.com/uae-en/");
+        driver.manage().window().maximize();
+        driver.manage().timeouts().implicitlyWait(10, TimeUnit.SECONDS);
+        WebDriverWait wait = new WebDriverWait(driver, 30);
+
+        scrollUntillScrollable(driver);
+
+        List<WebElement> allCarouselHeaders = wait.until(ExpectedConditions.visibilityOfAllElementsLocatedBy(By.cssSelector(carouselHeaders)));
+        List<String> allHeadersTexts = allCarouselHeaders.stream().map(WebElement::getText).collect(Collectors.toList());
+
+        /*System.out.println("Total number of Carousels available on Webpage " + allCarouselHeaders.size() + " and these are the following");
+        for (String text : allHeadersTexts)
+            System.out.println(text);*/
+
+        List<WebElement> allCarouselMenuNextButtons = wait.until(ExpectedConditions.visibilityOfAllElementsLocatedBy(By.xpath(nextButtonLocator)));
+        List<WebElement> allCarouselMenuWrappers = wait.until(ExpectedConditions.visibilityOfAllElementsLocatedBy(By.xpath(wrapperElements)));
+
+        List<String> titles = getListForThisCarouselMenu(driver, "Top deals on electronics", allHeadersTexts, allCarouselMenuNextButtons, allCarouselMenuWrappers);
+
+        for (String title : titles)
+            System.out.println(title);
+    }
